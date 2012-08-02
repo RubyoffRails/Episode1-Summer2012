@@ -3,7 +3,7 @@ rvm:
   - 1.9.3
 
 script:
-  - bundle exec rspec blackjack
+  - bundle exec rspec blackjack.rb
 
 notifications:
   email:
