@@ -13,8 +13,8 @@ class Card
     return @value
   end
 
-  def to_s
-    "#{@value}-#{suit}"
+   def to_s
+    "#{suit.upcase[0,1]}#{@value}"
   end
 
 end
@@ -38,7 +38,9 @@ class Deck
       end
     end
     cards.shuffle
+
   end
+
 end
 
 class Hand
@@ -47,6 +49,7 @@ class Hand
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -61,6 +64,7 @@ class Hand
       play_as_dealer(deck)
     end
   end
+
 end
 
 class Game
@@ -80,6 +84,7 @@ class Game
   def stand
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+    @gamestatus = determine_gstatus(@player_hand.value)
   end
 
   def status
@@ -87,10 +92,12 @@ class Game
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
-     :winner => @winner}
+     :winner => @winner,
+     :gamestatus=> @gamestatus 
+    }
   end
 
-  def determine_winner(player_value, dealer_value)
+ def determine_winner(player_value, dealer_value)
     return :dealer if player_value > 21
     return :player if dealer_value > 21
     if player_value == dealer_value
@@ -102,9 +109,18 @@ class Game
     end
   end
 
+  def determine_gstatus(player_value)
+    if player_value > 21
+      :standoff
+    else
+      :ongoing
+    end
+  end
+
   def inspect
     status
   end
+
 end
 
 
@@ -135,7 +151,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -207,12 +223,15 @@ describe Game do
   it "should have a players hand" do
     Game.new.player_hand.cards.length.should eq(2)
   end
+
   it "should have a dealers hand" do
     Game.new.dealer_hand.cards.length.should eq(2)
   end
+
   it "should have a status" do
     Game.new.status.should_not be_nil
   end
+
   it "should hit when I tell it to" do
     game = Game.new
     game.hit
@@ -223,20 +242,33 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+    game.status[:gamestatus].should_not be_nil
   end
 
   describe "#determine_winner" do
+
     it "should have dealer win when player busts" do
       Game.new.determine_winner(22, 15).should eq(:dealer) 
     end
+
     it "should player win if dealer busts" do
       Game.new.determine_winner(18, 22).should eq(:player) 
     end
+
     it "should have player win if player > dealer" do
       Game.new.determine_winner(18, 16).should eq(:player) 
     end
+
     it "should have push if tie" do
       Game.new.determine_winner(16, 16).should eq(:push) 
     end
+
+  end
+
+  describe "#determine_gstatus" do
+  
+   it "should standoff if player busts" do
+      Game.new.determine_gstatus(22).should eq(:standoff) 
+   end
   end
 end
