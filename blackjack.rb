@@ -13,8 +13,16 @@ class Card
     return @value
   end
 
+  # "D5" instead of "5-diamonds"
   def to_s
-    "#{@value}-#{suit}"
+    ###    cant do this beacause it's a Symbol
+    ###    suit_label = suit.chr.capitalize
+    ###    "{suit_label}#{@value}"
+
+    ### orig
+    ###     "#{@value}-#{suit}"
+
+    "#{suit}#{@value}" # I changed the symbols
   end
 
 end
@@ -29,7 +37,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:clubs, :diamonds, :spades, :hearts].each do |suit|
+    [:C, :D, :S, :H].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
