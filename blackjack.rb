@@ -5,6 +5,7 @@ class Card
   def initialize(suit, value)
     @suit = suit
     @value = value
+    @game_done = false
   end
 
   def value
@@ -15,6 +16,34 @@ class Card
 
   def to_s
     "#{suit.to_s[0].capitalize}#{@value}"
+  end
+
+  def game_done
+    @game_done = true
+  end
+
+end
+
+
+class DownCard < Card
+  def initialize(suit, value)
+    super(suit, value)
+  end
+
+  def value
+    if @game_done
+      super
+    else
+      0
+    end
+  end
+
+  def to_s
+    if @game_done
+      super
+    else
+      "XX"
+    end
   end
 
 end
@@ -56,6 +85,7 @@ class Hand
   end
 
   def play_as_dealer(deck)
+    @cards.each { |card| card.game_done }
     if value < 16
       hit!(deck)
       play_as_dealer(deck)
@@ -63,12 +93,26 @@ class Hand
   end
 end
 
+class PlayerHand < Hand
+end
+
+class DealerHand < Hand
+  def hit!(deck)
+    if @cards.length == 0
+      downcard = deck.cards.shift
+      @cards << DownCard.new(downcard.suit, downcard.value)
+    else
+      @cards << deck.cards.shift
+    end
+  end
+end
+  
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
-    @dealer_hand = Hand.new
+    @dealer_hand = DealerHand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
   end
@@ -143,6 +187,31 @@ describe Card do
 end
 
 
+describe DownCard do
+  it "should show XX before the game is done" do
+    downcard = DownCard.new(:diamonds, "K")
+    downcard.to_s.should eq("XX")
+  end
+
+  it "should show the actual card after the game is done" do
+    downcard = DownCard.new(:diamonds, "K")
+    downcard.game_done
+    downcard.to_s.should eq("DK")
+  end
+
+  it "should return a value of 0 before the game is done" do
+    downcard = DownCard.new(:hearts, 9)
+    downcard.value.should eq(0)
+  end
+
+  it "should return the actual value after the game is done" do
+    downcard = DownCard.new(:hearts, 9)
+    downcard.game_done
+    downcard.value.should eq(9)
+  end
+end
+
+
 describe Deck do
 
   it "should build 52 cards" do
@@ -205,6 +274,17 @@ describe Hand do
 end
 
 
+describe DealerHand do
+  describe "#hit!" do
+    it "should have a downcard on the first hit" do
+      deck = Deck.new
+      dealer_hand = DealerHand.new.hit!(deck)
+      dealer_hand[0].to_s.should eq("XX")
+    end
+  end
+end
+
+
 describe Game do
 
   it "should have a players hand" do
@@ -228,12 +308,23 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
+  it "should not show the full dealer hand before the game is done" do
+    game = Game.new
+    game.status[:dealer_cards].to_s.should include("XX")
+  end
+
+  it "should show the full dealer hand after the game is done" do
+    game = Game.new
+    game.stand
+    game.status[:dealer_cards].to_s.should_not include("XX")
+  end
+
   it "should #stand for the player if they bust" do
     game = Game.new
-    while game.status[:player_value] < 21
+    game.should_receive(:stand)
+    while game.status[:player_value] <= 21
       game.hit
     end
-    game.status[:winner].should_not be_nil
   end
 
   describe "#determine_winner" do
