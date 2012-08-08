@@ -18,7 +18,7 @@ class Card
     "#{suit.to_s[0].capitalize}#{@value}"
   end
 
-  def game_done
+  def game_done!
     @game_done = true
   end
 
@@ -85,15 +85,12 @@ class Hand
   end
 
   def play_as_dealer(deck)
-    @cards.each { |card| card.game_done }
+    @cards.each { |card| card.game_done! }
     if value < 16
       hit!(deck)
       play_as_dealer(deck)
     end
   end
-end
-
-class PlayerHand < Hand
 end
 
 class DealerHand < Hand
@@ -195,7 +192,7 @@ describe DownCard do
 
   it "should show the actual card after the game is done" do
     downcard = DownCard.new(:diamonds, "K")
-    downcard.game_done
+    downcard.game_done!
     downcard.to_s.should eq("DK")
   end
 
@@ -206,7 +203,7 @@ describe DownCard do
 
   it "should return the actual value after the game is done" do
     downcard = DownCard.new(:hearts, 9)
-    downcard.game_done
+    downcard.game_done!
     downcard.value.should eq(9)
   end
 end
