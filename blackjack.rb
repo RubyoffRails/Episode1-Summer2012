@@ -14,7 +14,8 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    first_letter = suit[0].capitalize
+    "#{first_letter}#{@value}"
   end
 
 end
@@ -105,6 +106,7 @@ class Game
   def inspect
     status
   end
+
 end
 
 
@@ -135,7 +137,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -239,4 +241,5 @@ describe Game do
       Game.new.determine_winner(16, 16).should eq(:push) 
     end
   end
+  
 end
