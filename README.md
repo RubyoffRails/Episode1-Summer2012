@@ -16,7 +16,7 @@ game.hit
 game.stand
 ```
 
-2. Change the Card's to_s to show "Q5" instead of 5-queen"
+2. Change the Card's to_s to show "D5" instead of "5-diamonds"
 
 
 Tiger Level
