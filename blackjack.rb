@@ -1,6 +1,8 @@
 require 'rspec'
 class Card
 
+#  @@FORMATS = (1 => "#{@value}-#{suit}", 2 => "#{suit}#{@value}")
+
   attr_reader :suit, :value
   def initialize(suit, value)
     @suit = suit
@@ -13,8 +15,33 @@ class Card
     return @value
   end
 
+  def suit
+    return_value = ''
+    if @suit.eql?(:clubs)
+      return_value = 'C'
+    end
+    if @suit.eql?(:spades)
+      return_value = 'S'
+    end
+    if @suit.eql?(:hearts)
+      return_value = 'H'
+      end
+    if @suit.eql?(:diamonds)
+      return_value = 'D'
+      end
+    return_value
+  end
+
+  # "D5" instead of "5-diamonds"
   def to_s
-    "#{@value}-#{suit}"
+    ###    cant do this beacause it's a Symbol
+    ###    suit_label = suit.chr.capitalize
+    ###    "{suit_label}#{@value}"
+
+    ### orig
+    #     "#{@value}-#{suit}"
+
+    "#{suit}#{@value}" # I changed the symbols, but the tests will fail now?
   end
 
 end
@@ -61,6 +88,10 @@ class Hand
       play_as_dealer(deck)
     end
   end
+
+  def inspect
+    @cards
+  end
 end
 
 class Game
@@ -75,24 +106,38 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      puts "Player Busts! at #{@player_hand.value}"
+      self.stand
+    end
+    puts "Player is Holding #{@player_hand.value}: #{@player_hand.inspect}"
   end
 
   def stand
-    @dealer_hand.play_as_dealer(@deck)
+    unless @player_hand.value > 21
+      @dealer_hand.play_as_dealer(@deck)
+    end
+    puts "Dealer is Holding #{@dealer_hand.value}: #{@dealer_hand.inspect}"
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+    puts "#{@winner} wins!"
   end
 
   def status
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => '$$',
+     :dealer_value => '$$',
      :winner => @winner}
   end
 
   def determine_winner(player_value, dealer_value)
     return :dealer if player_value > 21
     return :player if dealer_value > 21
+    #if player_value > 21
+    #  stand
+    #  :dealer
+    #end
+    #return :player if dealer_value > 21
     if player_value == dealer_value
       :push
     elsif player_value > dealer_value
@@ -107,17 +152,17 @@ class Game
   end
 end
 
-
+#==============================================================================
 describe Card do
 
   it "should accept suit and value when building" do
     card = Card.new(:clubs, 10)
-    card.suit.should eq(:clubs)
+    card.suit.should eq(:clubs.to_s.capitalize.each_char.first)
     card.value.should eq(10)
   end
 
   it "should have a value of 10 for facecards" do
-    facecards = ["J", "Q", "K"]
+    facecards = %w( J Q K )
     facecards.each do |facecard|
       card = Card.new(:hearts, facecard)
       card.value.should eq(10)
@@ -135,7 +180,8 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    #card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -223,6 +269,18 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should stand if player busts" do
+    game = Game.new
+    deck = mock(:deck, :cards => [Card.new(:clubs, 8),
+                                  Card.new(:diamonds, 7),
+                                  Card.new(:clubs, "K")])
+    hand = Hand.new
+    2.times { hand.hit!(deck) }
+    hand.hit!(deck)
+
+
   end
 
   describe "#determine_winner" do
