@@ -14,7 +14,11 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    suit = "C" if @suit == :clubs
+    suit = "D" if @suit == :diamonds
+    suit = "H" if @suit == :hearts
+    suit = "S" if @suit == :spaids
+    "#{suit}#{@value}"
   end
 
 end
@@ -29,7 +33,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:clubs, :diamonds, :spades, :hearts].each do |suit|
+    [:clubs, :diamonds, :spaids, :hearts].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
@@ -75,6 +79,7 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
   end
 
   def stand
@@ -135,7 +140,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -218,7 +223,13 @@ describe Game do
     game.hit
     game.player_hand.cards.length.should eq(3)
   end
-
+  it "should stand when player busts" do
+    game = Game.new
+    until game.status[:player_value] > 21
+      game.hit
+    end
+    game.status[:winner].should_not be_nil
+  end
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
