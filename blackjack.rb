@@ -88,10 +88,17 @@ class Game
   end
 
   def status
+    if @winner == nil
+      dealer_hand = ["XX", @dealer_hand.cards[1]]
+      dealer_value = "XX"
+    else
+      dealer_hand = @dealer_hand.cards
+      dealer_value = @dealer_hand.value
+    end
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => dealer_hand,
+     :dealer_value => dealer_value,
      :winner => @winner}
   end
 
@@ -217,6 +224,12 @@ describe Game do
   end
   it "should have a status" do
     Game.new.status.should_not be_nil
+  end
+  it "should not display dealers full hand until player stands" do
+    Game.new.status[:dealer_cards][0].should eq("XX")
+  end
+  it "should not display dealers score until player stands" do
+    Game.new.status[:dealer_value].should eq("XX")
   end
   it "should hit when I tell it to" do
     game = Game.new
