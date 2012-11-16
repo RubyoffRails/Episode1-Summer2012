@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{suit}#{value}"
   end
 
 end
@@ -29,7 +29,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:clubs, :diamonds, :spades, :hearts].each do |suit|
+    [:C, :D, :S, :H].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
@@ -56,10 +56,10 @@ class Hand
   end
 
   def play_as_dealer(deck)
-    if value < 16
-      hit!(deck)
+     unless value >= 16
+       hit!(deck)
       play_as_dealer(deck)
-    end
+     end
   end
 end
 
@@ -75,6 +75,10 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+      puts "I'm busted"
+    end
   end
 
   def stand
@@ -91,6 +95,7 @@ class Game
   end
 
   def determine_winner(player_value, dealer_value)
+
     return :dealer if player_value > 21
     return :player if dealer_value > 21
     if player_value == dealer_value
@@ -109,6 +114,7 @@ end
 
 
 describe Card do
+
 
   it "should accept suit and value when building" do
     card = Card.new(:clubs, 10)
@@ -134,8 +140,10 @@ describe Card do
   end
 
   it "should be formatted nicely" do
+    # card = Card.new(:diamonds, "A")  these are his test that I need to change
+    # card.to_s.should eq("A-diamonds")
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("diamonds11")
   end
 end
 
