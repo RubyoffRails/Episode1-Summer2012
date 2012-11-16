@@ -89,8 +89,8 @@ class Game
   def status
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => :NO_PEEKING,
+     :dealer_value => :NO_PEEKING,
      :winner => @winner}
   end
 
