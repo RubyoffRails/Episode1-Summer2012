@@ -69,24 +69,36 @@ class Game
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
+    @hidden = true
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
   end
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
+    status
   end
 
   def stand
+    @hidden = false
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+    status
   end
 
   def status
+    if @hidden == true
+      dealer_hand = "XX XX"
+      dealer_value = "XX"
+    else
+      dealer_hand = @dealer_hand.cards
+      dealer_value = @dealer_hand.value
+    end
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => dealer_hand,
+     :dealer_value => dealer_value,
      :winner => @winner}
   end
 
@@ -135,7 +147,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
