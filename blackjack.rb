@@ -14,7 +14,6 @@ class Card
   end
 
   def to_s
-    # "#{@value}-#{suit}"
     "#{suit[0].upcase}#{@value}"
   end
 
