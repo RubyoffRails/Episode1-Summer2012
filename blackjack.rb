@@ -228,6 +228,14 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
+  it "should #stand if the player busts" do
+    game = Game.new
+    unless game.status[:player_value] < 21
+      game.hit
+    end
+    game.status[:winner].should_not nil    
+  end
+
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
       Game.new.determine_winner(22, 15).should eq(:dealer) 
