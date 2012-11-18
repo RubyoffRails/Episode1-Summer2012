@@ -228,7 +228,7 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
-  it "should #stand if the player busts" do
+  it "should stand if the player busts" do
     game = Game.new
     unless game.status[:player_value] < 21
       game.hit
