@@ -89,7 +89,7 @@ class Game
 
   def status
     if @hidden == true
-      dealer_hand = "XX XX"
+      dealer_hand = ["XX", @dealer_hand.cards[1]]
       dealer_value = "XX"
     else
       dealer_hand = @dealer_hand.cards
