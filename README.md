@@ -16,19 +16,19 @@ game.hit
 game.stand
 ```
 
-2. Change the Card's to_s to show "Q5" instead of 5-queen"
+2. Change the Card's to_s to show "H5" instead of 5-hearts"
 
 
 Tiger Level
 -----------
 
 1. Complete the Panda assignment
-2. If a player busts (goes over 21), the game should #standfor the player
+2. If a player busts (goes over 21), the game should #stand for the player
 
 
 Eagle Level
 ------------
 
-1. The dealer hand should not not show both cards until the player has stood (It should be like "XX", "Q5")
+1. The dealer hand should not show both cards until the player has stood (It should be like "XX", "Q5")
 
 Copyright: Jesse Wolgamott, MIT License (See LICENSE)
