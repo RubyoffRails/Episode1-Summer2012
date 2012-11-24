@@ -1,7 +1,8 @@
 require 'rspec'
-class Card
 
+class Card
   attr_reader :suit, :value
+
   def initialize(suit, value)
     @suit = suit
     @value = value
@@ -14,11 +15,12 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    #"#{@value}-#{suit}" # 5-hearts
+		# want form 'H5'
+		suits_map = {:clubs => 'C', :diamonds => 'D', :spades => 'S', :hearts => 'H'}
+		"#{suits_map[suit]}#{@value}"
   end
-
 end
-
 
 class Deck
   attr_reader :cards
@@ -47,6 +49,7 @@ class Hand
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -65,17 +68,24 @@ end
 
 class Game
   attr_reader :player_hand, :dealer_hand
+
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
+		busted? # might get 2 Aces = 22 by def
   end
 
   def hit
-    @player_hand.hit!(@deck)
+		@player_hand.hit!(@deck)
+		busted?
   end
+
+	def busted?
+		@player_hand.value > 21 ? stand : @player_hand.cards
+	end
 
   def stand
     @dealer_hand.play_as_dealer(@deck)
@@ -83,7 +93,7 @@ class Game
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards => @player_hand.cards, 
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
@@ -135,7 +145,8 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    #card.to_s.should eq("A-diamonds")
+		card.to_s.should == 'DA'
   end
 end
 
@@ -171,11 +182,10 @@ describe Hand do
     hand = Hand.new
     2.times { hand.hit!(deck) }
     hand.cards.should eq([club4, diamond7])
-
   end
 
   describe "#play_as_dealer" do
-    it "should hit blow 16" do
+    it "should hit below 16" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
       hand = Hand.new
       2.times { hand.hit!(deck) }
@@ -225,11 +235,17 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
+	it 'should stand when I bust' do
+		game = Game.new
+		5.times {game.hit}
+		game.status[:winner].should eq(:dealer)
+	end
+
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
       Game.new.determine_winner(22, 15).should eq(:dealer) 
     end
-    it "should player win if dealer busts" do
+    it "should have player win if dealer busts" do
       Game.new.determine_winner(18, 22).should eq(:player) 
     end
     it "should have player win if player > dealer" do
