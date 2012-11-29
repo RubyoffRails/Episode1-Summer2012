@@ -14,11 +14,11 @@ class Card
   end
 
   def to_s
-    suit-abbreviation = "C" if @suit == :clubs
-    suit-abbreviation = "D" if @suit == :diamonds
-    suit-abbreviation = "H" if @suit == :hearts
-    suit-abbreviation = "S" if @suit == :spaids
-    "#{suit-abbreviation}#{@value}"
+    suit_abbreviation = "C" if @suit == :clubs
+    suit_abbreviation = "D" if @suit == :diamonds
+    suit_abbreviation = "H" if @suit == :hearts
+    suit_abbreviation = "S" if @suit == :spaids
+    "#{suit_abbreviation}#{@value}"
   end
 
 end
