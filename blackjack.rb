@@ -14,11 +14,11 @@ class Card
   end
 
   def to_s
-    suit = "C" if @suit == :clubs
-    suit = "D" if @suit == :diamonds
-    suit = "H" if @suit == :hearts
-    suit = "S" if @suit == :spaids
-    "#{suit}#{@value}"
+    suit-abbreviation = "C" if @suit == :clubs
+    suit-abbreviation = "D" if @suit == :diamonds
+    suit-abbreviation = "H" if @suit == :hearts
+    suit-abbreviation = "S" if @suit == :spaids
+    "#{suit-abbreviation}#{@value}"
   end
 
 end
@@ -88,7 +88,7 @@ class Game
   end
 
   def status
-    if @winner == nil
+    if @winner.nil?
       dealer_hand = ["XX", @dealer_hand.cards[1]]
       dealer_value = "XX"
     else
