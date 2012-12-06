@@ -240,6 +240,17 @@ describe Game do
     # Feel like I want to stub out the method hit and return a 'bust hand' and then test that the winner is in fact the dealer.
   end
 
+  describe "#status" do
+    it "formats hands to show 'Q5'" do
+      game = Game.new
+      ['clubs', 'diamonds', 'spades', 'hearts'].each do |suit|
+        game.status[:player_cards].should_not include(suit)
+      end
+    end
+
+    it "doesn't show dealer's hand until player has stood"
+  end
+
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
       Game.new.determine_winner(22, 15).should eq(:dealer) 
