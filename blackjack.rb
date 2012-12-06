@@ -64,11 +64,12 @@ class Hand
 end
 
 class Game
-  attr_reader :player_hand, :dealer_hand
+  attr_reader :player_hand, :dealer_hand, :player_stood
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
+    @player_stood = false
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
   end
@@ -83,19 +84,29 @@ class Game
   end
 
   def stand_for
-    @winner = :dealer
+    @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
   def stand
+    @player_stood = true
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
   def status
-    {:player_cards=> @player_hand.cards.join, 
-     :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards.join,
-     :dealer_value => @dealer_hand.value,
+    player_cards = @player_hand.cards.join
+    player_value = @player_hand.value
+    dealer_cards = @dealer_hand.cards.join
+    dealer_value = @dealer_hand.value
+    if @player_stood == false
+      dealer_cards = dealer_cards.replace "XX"
+      dealer_value = dealer_value.to_s.replace "XX"
+    end
+
+    {:player_cards => player_cards, 
+     :player_value => player_value,
+     :dealer_cards => dealer_cards,
+     :dealer_value => dealer_value,
      :winner => @winner}
   end
 
@@ -248,7 +259,27 @@ describe Game do
       end
     end
 
-    it "doesn't show dealer's hand until player has stood"
+    it "doesn't show dealer's hand until player has stood" do
+      game = Game.new
+      game.status[:dealer_cards].should eq("XX")
+    end
+
+    it "shows dealer's hand when player has stood" do
+      game = Game.new
+      game.stand
+      game.status[:dealer_cards].should_not eq("XX")
+    end
+
+    it "doesn't show dealer's value until player has stood" do
+      game = Game.new
+      game.status[:dealer_value].should eq("XX")
+    end
+
+    it "shows dealer's hand when player has stood" do
+      game = Game.new
+      game.stand
+      game.status[:dealer_value].should_not eq("XX")
+    end
   end
 
   describe "#determine_winner" do
