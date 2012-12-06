@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}"
   end
 
 end
@@ -83,9 +83,9 @@ class Game
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards=> @player_hand.cards.join, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
+     :dealer_cards => @dealer_hand.cards.join,
      :dealer_value => @dealer_hand.value,
      :winner => @winner}
   end
@@ -135,7 +135,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("A")
   end
 end
 
