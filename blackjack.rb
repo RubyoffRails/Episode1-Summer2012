@@ -64,7 +64,8 @@ class Hand
 end
 
 class Game
-  attr_reader :player_hand, :dealer_hand, :player_stood
+  attr_reader :dealer_hand, :player_stood
+  attr_accessor :player_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
@@ -76,15 +77,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
-    if @player_hand.value > 21
-      stand_for
-    else
-      status
-    end
+    player_bust?(@player_hand)
   end
 
-  def stand_for
-    @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+  def player_bust?(hand)
+    hand.value > 21 ? stand : status
   end
 
   def stand
@@ -246,9 +243,20 @@ describe Game do
   end
 
   it "automatically stands if player busts (over 21)" do
+      deck = mock(:deck, :cards => [Card.new(:clubs, 5), 
+                                    Card.new(:diamonds, "Q"), 
+                                    Card.new(:clubs, "K")])
+      players_hand = Hand.new
+      3.times { players_hand.hit!(deck) }
+      game = Game.new
+      game.player_hand = players_hand
+      game.player_bust?(players_hand).should eq(:dealer)
+  end
+
+  it "calls #player_bust? inside #hit method" do
     game = Game.new
+    game.should_receive(:player_bust?)
     game.hit
-    # Feel like I want to stub out the method hit and return a 'bust hand' and then test that the winner is in fact the dealer.
   end
 
   describe "#status" do
