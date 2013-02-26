@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    end
   end
 
   def stand
