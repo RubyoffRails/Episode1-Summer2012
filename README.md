@@ -29,6 +29,6 @@ Tiger Level
 Eagle Level
 ------------
 
-1. The dealer hand should not not show both cards until the player has stood (It should be like "XX", "Q5")
+1. The dealer hand should not not show both cards until the player has stood (It should be like "XX", "5H")
 
 Copyright: Jesse Wolgamott, MIT License (See LICENSE)
