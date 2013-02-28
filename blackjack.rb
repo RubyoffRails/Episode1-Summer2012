@@ -14,7 +14,15 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    # original to_s
+    #"#{@value}-#{suit}"
+    suit_type = { :clubs => "C", :diamonds => "D", 
+                  :spades => "S", :hearts => "H" }
+    "#{@value}#{suit_type[@suit]}"  
+
+    # This also works
+    #"#{@value}#{@suit[0,1].upcase}"
+    
   end
 
 end
@@ -75,6 +83,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    
+    if @player_hand.value > 21 
+      #puts "The player busts."
+      stand
+    end
   end
 
   def stand
@@ -133,11 +146,18 @@ describe Card do
     card.value.should eq(11)
   end
 
-  it "should be formatted nicely" do
+  it "should use the new format" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
+  end
+
+   it "should not use the old format" do
+    card = Card.new(:diamonds, "A")
+    card.to_s.should_not eq("A-diamonds")
   end
 end
+
+
 
 
 describe Deck do
