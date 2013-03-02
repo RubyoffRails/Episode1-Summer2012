@@ -13,17 +13,17 @@ class Card
     return @value
   end
 
-  def to_s
-    # original to_s
-    #"#{@value}-#{suit}"
-    suit_type = { :clubs => "C", :diamonds => "D", 
-                  :spades => "S", :hearts => "H" }
-    "#{@value}#{suit_type[@suit]}"  
+  def to_s    
+    "#{@value}#{suit_type}"  
 
     # This also works
     #"#{@value}#{@suit[0,1].upcase}"
-    
   end
+
+  def suit_type
+    { :clubs => "C", :diamonds => "D", :spades => "S", :hearts => "H" }[@suit]
+  end
+
 
 end
 
@@ -149,11 +149,6 @@ describe Card do
   it "should use the new format" do
     card = Card.new(:diamonds, "A")
     card.to_s.should eq("AD")
-  end
-
-   it "should not use the old format" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should_not eq("A-diamonds")
   end
 end
 
