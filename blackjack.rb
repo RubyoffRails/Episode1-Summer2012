@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    end
   end
 
 
@@ -176,7 +179,7 @@ describe Hand do
   end
 
   describe "#play_as_dealer" do
-    it "should hit blow 16" do
+    it "should hit below 16" do
       deck = mock(:deck, :cards => [Card.new(:C, 4), Card.new(:D, 4), Card.new(:C, 2), Card.new(:H, 6)])
       hand = Hand.new
       2.times { hand.hit!(deck) }
@@ -226,9 +229,18 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
+
+
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
       Game.new.determine_winner(22, 15).should eq(:dealer)
+    end
+    it "should #stand for player when busts" do
+      game = Game.new
+      while game.status[:player_value] < 21
+        game.hit
+      end
+      game.stand.should eq(:dealer)
     end
     it "should player win if dealer busts" do
       Game.new.determine_winner(18, 22).should eq(:player)
