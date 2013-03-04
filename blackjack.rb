@@ -64,6 +64,8 @@ class Hand
 end
 
 class Game
+  attr_reader :player_hand
+
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
