@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit[0].upcase}"
   end
 
 end
@@ -64,7 +64,8 @@ class Hand
 end
 
 class Game
-  attr_reader :player_hand, :dealer_hand
+  attr_reader :player_hand
+
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
@@ -74,7 +75,8 @@ class Game
   end
 
   def hit
-    @player_hand.hit!(@deck)
+    @player_hand.hit!(@deck) if @player_hand.value < 21
+    stand if @player_hand.value >= 21
   end
 
   def stand
@@ -85,7 +87,7 @@ class Game
   def status
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
+     :dealer_cards => dealer_cards,
      :dealer_value => @dealer_hand.value,
      :winner => @winner}
   end
@@ -104,6 +106,14 @@ class Game
 
   def inspect
     status
+  end
+
+  def dealer_cards
+    @winner ? @dealer_hand.cards : [@dealer_hand.cards[0], 'XX']
+  end
+
+  def player_cards
+    @player_hand.cards
   end
 end
 
@@ -135,7 +145,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
@@ -208,7 +218,7 @@ describe Game do
     Game.new.player_hand.cards.length.should eq(2)
   end
   it "should have a dealers hand" do
-    Game.new.dealer_hand.cards.length.should eq(2)
+    Game.new.dealer_cards.length.should eq(2)
   end
   it "should have a status" do
     Game.new.status.should_not be_nil
@@ -223,6 +233,26 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should stand for me if I bust" do
+    game = Game.new
+    while game.player_hand.value <= 21
+      game.hit
+    end
+    game.status[:winner].should eq(:dealer)
+  end
+
+  describe "dealer cards" do
+    it "should not display dealer cards until player stands" do
+      game = Game.new
+      game.dealer_cards[1].should eq('XX')
+      game.status[:dealer_cards][1].should eq('XX')
+    end
+
+    it "should display dealer cards once player stands" do
+
+    end
   end
 
   describe "#determine_winner" do
