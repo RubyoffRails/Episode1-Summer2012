@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    end
   end
 
   def stand
@@ -223,6 +226,19 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should stand for player if player busts (goes over 21)" do
+      deck = mock(:deck, :cards => [Card.new(:clubs, "Q"), 
+                                    Card.new(:diamonds, "J"),
+                                    Card.new(:spades, 3),
+                                    Card.new(:diamonds, 10), 
+                                    Card.new(:clubs, "K")])
+      game = Game.new
+      game.hit
+      game.status[:winner].should_not be_nil
+
+
   end
 
   describe "#determine_winner" do
