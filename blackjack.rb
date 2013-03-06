@@ -54,14 +54,32 @@ class Hand
     cards.inject(0) {|sum, card| sum += card.value }
   end
 
-  def dealer_cards
-    return "[XX, #{@cards[1]}]"
+  def dealer_cards(winner)
+    if winner.nil?
+      hide_dealer_cards
+    else
+      cards
+    end
+  end
+
+  def dealer_value(winner)
+    if winner.nil?
+      hide_dealer_value
+    else
+      value
+    end
+  end
+
+  def hide_dealer_cards
+    "[XX, #{@cards[1]}]"
+  end
+
+  def hide_dealer_value
+    :unknown
   end
 
   def bust?
-    if value > 21
-      true
-    end
+    value > 21
   end
 
   def play_as_dealer(deck)
@@ -84,11 +102,10 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
-    # If a player busts (goes over 21), the game should #standfor the player.
-    standfor if @player_hand.bust?
+    player_loses if @player_hand.bust?
   end
 
-  def standfor
+  def player_loses
     puts "Player Busts at #{@player_hand.value}"
     @winner = :dealer
   end
@@ -99,18 +116,10 @@ class Game
   end
 
   def status
-    {:player_cards=> @player_hand.cards,
+    {:player_cards => @player_hand.cards,
      :player_value => @player_hand.value,
-     :dealer_cards => if @winner.nil?
-                        @dealer_hand.dealer_cards
-                      else
-                        @dealer_hand.cards
-                      end,
-     :dealer_value => if @winner.nil?
-                        "?"
-                      else
-                        @dealer_hand.value
-                      end,
+     :dealer_cards => @dealer_hand.dealer_cards(@winner),
+     :dealer_value => @dealer_hand.dealer_value(@winner),
      :winner => @winner}
   end
 
