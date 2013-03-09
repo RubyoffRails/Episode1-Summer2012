@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}#{suit}"
+    "#{@value}#{suit.to_s.chars.first.upcase}"
   end
 
 end
@@ -29,7 +29,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:C, :D, :S, :H].each do |suit|
+    [:clubs, :diamonds, :spades, :hearts].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
@@ -75,6 +75,12 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      puts "Player busted!"
+      stand
+    else
+      status
+    end
   end
 
   def stand
@@ -135,7 +141,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
