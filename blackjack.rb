@@ -78,8 +78,9 @@ class Game
     if @player_hand.value > 21
       puts "Player busted!"
       stand
+      end_status
     else
-      status
+      pre_status
     end
   end
 
@@ -88,7 +89,13 @@ class Game
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
-  def status
+  def pre_status
+     { :player_cards => @player_hand.cards, 
+       :player_value => @player_hand.value,
+       :dealer_cards => @dealer_hand.cards[0] }
+  end
+    
+  def end_status
     {:player_cards => @player_hand.cards, 
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
@@ -109,7 +116,7 @@ class Game
   end
 
   def inspect
-    status
+    pre_status
   end
 end
 
