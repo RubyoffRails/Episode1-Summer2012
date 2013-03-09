@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit.to_s.chars.first.upcase}"
   end
 
 end
@@ -75,6 +75,13 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      puts "Player busted!"
+      stand
+      end_status
+    else
+      pre_status
+    end
   end
 
   def stand
@@ -82,8 +89,14 @@ class Game
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
-  def status
-    {:player_cards=> @player_hand.cards, 
+  def pre_status
+     { :player_cards => @player_hand.cards, 
+       :player_value => @player_hand.value,
+       :dealer_cards => @dealer_hand.cards[0] }
+  end
+    
+  def end_status
+    {:player_cards => @player_hand.cards, 
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
@@ -103,7 +116,7 @@ class Game
   end
 
   def inspect
-    status
+    pre_status
   end
 end
 
@@ -135,7 +148,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
