@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit}"
   end
 
 end
@@ -29,7 +29,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:clubs, :diamonds, :spades, :hearts].each do |suit|
+    [:C, :D, :S, :H].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
@@ -83,7 +83,7 @@ class Game
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards => @player_hand.cards, 
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
