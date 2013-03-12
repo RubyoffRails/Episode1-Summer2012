@@ -58,6 +58,14 @@ class Hand
     cards.inject(0) {|sum, card| sum += card.value }
   end
 
+  def hidden_cards
+    "[XX, #{@cards.last}]"
+  end
+
+  def hidden_value
+    "#{@cards.last.value} + ?"
+  end
+
   def play_as_dealer(deck)
     if value < 16
       hit!(deck)
@@ -69,6 +77,7 @@ end
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
+    @player_is_standing = false
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
@@ -85,16 +94,26 @@ class Game
   end
 
   def stand
+    @player_is_standing = true
+
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
-     :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
-     :winner => @winner}
+    if @player_is_standing
+      {:player_cards=> @player_hand.cards, 
+      :player_value => @player_hand.value,
+      :dealer_cards => @dealer_hand.cards,
+      :dealer_value => @dealer_hand.value,
+      :winner => @winner}
+    else
+      {:player_cards=> @player_hand.cards, 
+      :player_value => @player_hand.value,
+      :dealer_cards => @dealer_hand.hidden_cards,
+      :dealer_value => @dealer_hand.hidden_value,
+      :winner => @winner}
+    end
   end
 
   def determine_winner(player_value, dealer_value)
