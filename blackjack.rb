@@ -13,8 +13,12 @@ class Card
     return @value
   end
 
+  def suit
+    @suit[0].capitalize
+  end
+
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit}"
   end
 
 end
@@ -112,7 +116,7 @@ describe Card do
 
   it "should accept suit and value when building" do
     card = Card.new(:clubs, 10)
-    card.suit.should eq(:clubs)
+    card.suit.should eq("C")
     card.value.should eq(10)
   end
 
@@ -135,7 +139,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
