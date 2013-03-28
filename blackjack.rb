@@ -88,9 +88,29 @@ class Game
   def status
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => dealer_card_display,
+     :dealer_value => dealer_value_display,
      :winner => @winner}
+  end
+
+  def dealer_card_display
+    if @winner.nil?
+      hidden_dealer_cards = Array.new
+      @dealer_hand.cards.each {
+        hidden_dealer_cards << 'X'
+      }
+      hidden_dealer_cards
+    else
+      @dealer_hand.cards
+    end
+  end
+
+  def dealer_value_display
+    if @winner.nil?
+      "can't tell you"
+    else
+      @dealer_hand.value
+    end
   end
 
   def determine_winner(player_value, dealer_value)
