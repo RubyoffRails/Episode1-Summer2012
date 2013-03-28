@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{(suit.to_s.chars.first.upcase)}"
   end
 
 end
@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    end
   end
 
   def stand
@@ -85,9 +88,29 @@ class Game
   def status
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => dealer_card_display,
+     :dealer_value => dealer_value_display,
      :winner => @winner}
+  end
+
+  def dealer_card_display
+    if @winner.nil?
+      hidden_dealer_cards = Array.new
+      @dealer_hand.cards.each {
+        hidden_dealer_cards << 'X'
+      }
+      hidden_dealer_cards
+    else
+      @dealer_hand.cards
+    end
+  end
+
+  def dealer_value_display
+    if @winner.nil?
+      "can't tell you"
+    else
+      @dealer_hand.value
+    end
   end
 
   def determine_winner(player_value, dealer_value)
@@ -135,7 +158,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
@@ -223,6 +246,19 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should stand for player if player busts (goes over 21)" do
+      deck = mock(:deck, :cards => [Card.new(:clubs, "Q"), 
+                                    Card.new(:diamonds, "J"),
+                                    Card.new(:spades, 3),
+                                    Card.new(:diamonds, 10), 
+                                    Card.new(:clubs, "K")])
+      game = Game.new
+      game.hit
+      game.status[:winner].should_not be_nil
+
+
   end
 
   describe "#determine_winner" do
