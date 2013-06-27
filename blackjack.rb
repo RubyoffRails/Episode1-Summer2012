@@ -14,7 +14,13 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    abbrev = {
+      clubs: "C",
+      diamonds: "D",
+      spades: "S",
+      hearts: "H"
+    }
+    "#{@value}#{abbrev[@suit]}"
   end
 
 end
@@ -133,9 +139,9 @@ describe Card do
     card.value.should eq(11)
   end
 
-  it "should be formatted nicely" do
+  it "should be formatted with abbreviation" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
