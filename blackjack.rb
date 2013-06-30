@@ -48,33 +48,63 @@ class Deck
 end
 
 class Hand
-  attr_reader :cards
-
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
 
-  def value
-    cards.inject(0) {|sum, card| sum += card.value }
+  def cards
+    @cards.map {|card| card.to_s }  
   end
 
-  def play_as_dealer(deck)
+  def value
+    @cards.inject(0) {|sum, card| sum += card.value }
+  end
+end
+
+class DealerHand < Hand
+  def initialize
+    super
+    @played = false
+  end
+
+  def cards
+    if @played
+      super
+    else
+      #hide first card
+      ["XX"] + @cards[1..-1].map {|card| card.to_s}
+    end
+  end
+
+  def value
+    if @played
+      super
+    else
+      nil
+    end
+  end
+
+  def play(deck)
+    @played = true
     if value < 16
       hit!(deck)
-      play_as_dealer(deck)
+      play(deck)
     end
   end
 end
+
+
 
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
-    @dealer_hand = Hand.new
+    @dealer_hand = DealerHand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
 
@@ -88,7 +118,7 @@ class Game
   end
 
   def stand
-    @dealer_hand.play_as_dealer(@deck)
+    @dealer_hand.play(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
@@ -184,32 +214,57 @@ describe Hand do
     deck = mock(:deck, :cards => [club4, diamond7, clubK])
     hand = Hand.new
     2.times { hand.hit!(deck) }
-    hand.cards.should eq([club4, diamond7])
+    hand.cards.should eq([club4.to_s, diamond7.to_s])
 
   end
+end
 
-  describe "#play_as_dealer" do
+describe DealerHand do
+
+  it "should hide the dealer's first card and value until dealer has played" do
+    club4 = Card.new(:clubs, 4)
+    diamond7 = Card.new(:diamonds, 7) 
+    clubK = Card.new(:clubs, "K")
+
+    deck = mock(:deck, :cards => [club4, diamond7, clubK])
+    dealer_hand = DealerHand.new
+
+    2.times { dealer_hand.hit!(deck) }
+
+    dealer_hand.cards[0].should eq("XX")
+    dealer_hand.value.should be_nil
+
+    dealer_hand.play(deck)
+    
+    dealer_hand.cards[0].should eq(club4.to_s)
+    dealer_hand.value.should eq(21)
+  end
+
+  describe "#play" do
+
     it "should hit blow 16" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
-      hand.play_as_dealer(deck)
+      hand.play(deck)
       hand.value.should eq(16)
     end
+
     it "should not hit above" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 8), Card.new(:diamonds, 9)])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
-      hand.play_as_dealer(deck)
+      hand.play(deck)
       hand.value.should eq(17)
     end
+
     it "should stop on 21" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), 
                                     Card.new(:diamonds, 7), 
                                     Card.new(:clubs, "K")])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
-      hand.play_as_dealer(deck)
+      hand.play(deck)
       hand.value.should eq(21)
     end
   end
