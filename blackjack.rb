@@ -77,11 +77,14 @@ class Game
     @dealer_hand = Hand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
+
+    stand if @player_hand.value == 21
   end
 
   def hit
     @player_hand.hit!(@deck)
-    stand if @player_hand.value > 21
+    stand if @player_hand.value >= 21
+    status
   end
 
   def stand
@@ -111,6 +114,10 @@ class Game
 
   def inspect
     status
+  end
+
+  def finished?
+    @winner != nil
   end
 end
 
@@ -229,7 +236,7 @@ describe Game do
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
-    game.status[:winner].should_not be_nil
+    game.finished?.should be_true
   end
 
 
@@ -238,7 +245,17 @@ describe Game do
     while game.player_hand.value <= 21
       game.hit
     end
-    game.status[:winner].should_not be_nil
+    game.finished?.should be_true
+  end
+
+  it "should stand for the player if a player gets 21 exactly" do
+    game = Game.new
+    while game.player_hand.value < 21
+      game.hit
+      #recreate a game if the player busts
+      game = Game.new if game.player_hand.value > 21
+    end
+    game.finished?.should be_true
   end
 
   describe "#determine_winner" do
