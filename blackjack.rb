@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit[0].upcase}"
   end
 
 end
@@ -133,9 +133,14 @@ describe Card do
     card.value.should eq(11)
   end
 
-  it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+  it "should be formatted number first and suit later: 5H" do
+    card = Card.new(:hearts, 5)
+    card.to_s.should eq("5H")
+  end
+
+  it "should be formatted facecard first and suit later QH" do
+    card = Card.new(:hearts, 'Q')
+    card.to_s.should eq("QH")
   end
 end
 
