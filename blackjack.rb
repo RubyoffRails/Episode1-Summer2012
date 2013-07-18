@@ -74,35 +74,28 @@ class Game
   end
 
   def hit
-    @player_hand.hit!(@deck)
+    puts "Have other card"
+    hit = @player_hand.hit!(@deck)
+    return next_move(@player_hand.value) if @player_hand.value >= 21
+    return hit
+  end
+
+  def next_move( value )
+    case value
+    when (21)     then stand 
+    when (22..52) then stop
+    end  
+  end
+
+  def stop
+    puts "You went over 21, you lost"
   end
 
   def stand
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
-    puts "The winner is #{@winner}" if @winner == :player or @winner == :dealer
-    puts "It's a push." if @winner == :push
-    continue? ? new_game : stop
-  end
-
-  def continue?
-    return true  if @player_hand.value <= 21
-    return false if @player_hand.value >= 22
-  end
-
-  def new_game
-    puts "Beginning new game"
-    @player_hand.cards.clear
-    @dealer_hand.cards.clear
-    @deck = Deck.new
-    2.times { @player_hand.hit!(@deck) }
-    2.times { @dealer_hand.hit!(@deck) }
-    status
-  end
-
-  def stop
-    puts "You went over 21, you lost"
-    exit
+    puts "The winner is #{@winner}"
+    @winner
   end
 
   def status
@@ -268,15 +261,23 @@ describe Game do
     end
   end
 
-  it "should continue playing if player gets 21 or less" do
-    game = Game.new
-    game.player_hand.stub(:value).and_return(14)
-    game.continue?.should eq(true)
-  end
-
-  it "should stop playing if player goes over 21" do
+  it "should stop if the player goes over 21" do
     game = Game.new
     game.player_hand.stub(:value).and_return(22)
-    game.continue?.should eq(false)
+    game.hit.should be_nil
+  end
+
+  it "should hit if the player have less than 21" do
+    game = Game.new
+    game.player_hand.stub(:value).and_return(15)
+    game.hit.length.should eq(3)
+  end
+
+  it "should stand if the player or the dealer have 21" do
+    game = Game.new
+    game.player_hand.stub(:value).and_return(21)
+    [:player, :dealer, :push].each do | winner |
+      game.hit.should eq(winner) if game.hit == winner 
+    end
   end
 end
