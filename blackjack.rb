@@ -14,9 +14,8 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit[0].upcase}"
   end
-
 end
 
 
@@ -74,18 +73,49 @@ class Game
   end
 
   def hit
-    @player_hand.hit!(@deck)
+    puts "Have other card"
+    @dealer_hand.hit!(@deck)
+    hit = @player_hand.hit!(@deck)
+    return next_move(@player_hand.value) if @player_hand.value >= 21
+    return hit
+  end
+
+  def format_cards( cards )
+    return hide_cards( cards ) if @winner.nil?
+    return cards
+  end
+
+  def hide_cards( cards )
+    hidden_cards = []
+    cards.each do | card |
+      hidden_cards << "XX"
+    end
+    hidden_cards
+  end
+
+  def next_move( value )
+    case value
+    when (21)     then stand 
+    when (22..52) then stop
+    end  
+  end
+
+  def stop
+    puts "You went over 21, you lost"
+    stand
   end
 
   def stand
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+    puts "The winner is #{@winner}"
+    @winner
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards => @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
+     :dealer_cards => format_cards( @dealer_hand.cards ),
      :dealer_value => @dealer_hand.value,
      :winner => @winner}
   end
@@ -133,9 +163,14 @@ describe Card do
     card.value.should eq(11)
   end
 
-  it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+  it "should be formatted number first and suit later: 5H" do
+    card = Card.new(:hearts, 5)
+    card.to_s.should eq("5H")
+  end
+
+  it "should be formatted facecard first and suit later QH" do
+    card = Card.new(:hearts, 'Q')
+    card.to_s.should eq("QH")
   end
 end
 
@@ -238,5 +273,42 @@ describe Game do
     it "should have push if tie" do
       Game.new.determine_winner(16, 16).should eq(:push) 
     end
+  end
+
+  it "should stop if the player goes over 21" do
+    game = Game.new
+    game.player_hand.stub(:value).and_return(22)
+    game.hit
+    game.stand.should eq(:dealer)
+  end
+
+  it "should hit if the player have less than 21" do
+    game = Game.new
+    game.player_hand.stub(:value).and_return(15)
+    game.hit.length.should eq(3)
+  end
+
+  it "should stand if the player or the dealer have 21" do
+    game = Game.new
+    game.player_hand.stub(:value).and_return(21)
+    [:player, :dealer, :push].each do | winner |
+      game.hit.should eq(winner) if game.hit == winner 
+    end
+  end
+
+  it "should hide the dealer cards" do
+    game = Game.new
+    game.hide_cards( game.dealer_hand.cards )
+    game.status[:dealer_cards].each do | card |
+      card.should eq("XX")
+    end
+  end
+
+  it "should hide the dealer cards until the player has stood" do
+    game = Game.new
+    game.stand
+    game.status[:dealer_cards].each do | card |
+      card.should_not eq("XX")
+    end    
   end
 end
