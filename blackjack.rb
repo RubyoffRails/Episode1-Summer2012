@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit[0].capitalize}" 
   end
 
 end
@@ -41,12 +41,14 @@ class Deck
   end
 end
 
+
 class Hand
   attr_reader :cards
 
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -63,31 +65,57 @@ class Hand
   end
 end
 
+
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
+    @stood = false
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
   end
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+        stand
+    else
+        print self.status
+    end
   end
 
   def stand
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
+    @stood = true
+    print self.status
+    if @winner == :dealer
+        abort("\nThe dealer won!")
+    elsif @winner == :player
+        abort("\nYou won!")
+    elsif @winner == :push
+        abort("\nThe Game was Tied!")
+    end
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
-     :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
-     :winner => @winner}
+      @dealer_hand_not_stood = @dealer_hand.cards.dup
+      @dealer_hand_not_stood[0] = "XX"
+      if @stood == true
+        {:player_cards => @player_hand.cards, 
+        :player_value => @player_hand.value,
+        :dealer_cards => @dealer_hand.cards,
+        :dealer_value => @dealer_hand.value,
+        :winner => @winner, :stood => @stood}
+      else
+        {:player_cards => @player_hand.cards,
+        :player_value => @player_hand.value,
+        :dealer_cards => @dealer_hand_not_stood,
+        :dealer_value => nil,
+        :winner => @winner, :stood => @stood}
+      end
   end
 
   def determine_winner(player_value, dealer_value)
