@@ -92,11 +92,14 @@ class Game
     @stood = true
     print self.status
     if @winner == :dealer
-        abort("\nThe dealer won!")
+        print "\nThe dealer won!"
+        # abort("\nThe dealer won!")
     elsif @winner == :player
-        abort("\nYou won!")
+        print "\nYou Won!"
+        # abort("\nYou won!")
     elsif @winner == :push
-        abort("\nThe Game was Tied!")
+        print "\nThe Game was tied!"
+        # abort("\nThe Game was Tied!")
     end
   end
 
@@ -163,7 +166,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD") # changed to comply with the Panda Level requirements
   end
 end
 
