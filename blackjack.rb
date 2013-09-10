@@ -11,7 +11,7 @@ class Card
     def value
 	    return 10 if ["J", "Q", "K"].include?(@value)
 	    return 11 if @value == "A"
-		return @value
+            return @value
 	end
 
 	def to_s
@@ -20,13 +20,10 @@ class Card
 end
 
 class Deck 
-
 	attr_reader :cards
-
 	def initialize
 		@cards = Deck.build_cards
 	end
-
 	def self.build_cards
 		cards = [] #just a local variable
 		[:clubs, :spades, :hearts, :diamonds].each do |suit|
@@ -42,41 +39,31 @@ class Deck
 end
 
 class Hand 
-
 	attr_reader :cards
-
 	def initialize
 		@cards = []
 	end
 	def hit!(deck)
 		@cards << deck.cards.shift
 	end
-
-	def value #calling value method-in card
+               def value #calling value method-in card
 		cards.inject(0) { |sum, card| sum += card.value }		
 	end
-
 	def play_as_dealer(deck)		
 		if value < 16
 			hit!(deck)
 			play_as_dealer(deck)
 		end
 	end 
-
-
     def secret_cards #fix
         cards.each do |card|
         	card == "X"
         	puts "frog"
         end
     end
-
 end
-
 class Game
-
 	attr_reader :player_hand , :dealer_hand
-
 	def initialize
 		 @deck = Deck.new
 		 @player_hand = Hand.new
@@ -84,7 +71,6 @@ class Game
 		 2.times { @player_hand.hit!(@deck) }
 		 2.times { @dealer_hand.hit!(@deck) }	     
 	end
-
 	def hit	 #Tig1.2
 			if player_hand.value > 21
 				stand
@@ -114,7 +100,7 @@ class Game
 		:player_value => @player_hand.value,
 		:dealer_card => @dealer_hand.cards,
 		:dealer_value => @dealer_hand.value,
-		:winner => determine_winner(@player_hand.value, @dealer_hand.value)
+		:winner => determine_winner(@player_hand.value,  @dealer_hand.value)
 									}											
 	end
 
@@ -221,10 +207,8 @@ describe Hand do
 			hand.play_as_dealer(deck)
 			hand.value.should eq(21)
 		end 
-
-
-	end  
-end 
+	     end  
+          end 
 
 
 describe Game do
