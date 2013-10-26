@@ -47,6 +47,7 @@ class Hand
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -75,6 +76,7 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
   end
 
   def stand
@@ -175,6 +177,7 @@ describe Hand do
 
   end
 
+
   describe "#play_as_dealer" do
     it "should hit blow 16" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
@@ -224,6 +227,12 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should auto stand if player busts" do
+    game = Game.new
+    game.should_receive(:stand)
+    game.hit while game.player_hand.value <= 21
   end
 
   describe "#determine_winner" do
