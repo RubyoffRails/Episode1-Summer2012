@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit.to_s.chars.first.upcase}"
   end
 
 end
@@ -69,7 +69,7 @@ class Game
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
-    2.times { @player_hand.hit!(@deck) } 
+    2.times { @player_hand.hit!(@deck) }
     2.times { @dealer_hand.hit!(@deck) }
   end
 
@@ -83,7 +83,7 @@ class Game
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards=> @player_hand.cards,
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
@@ -134,9 +134,10 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:harts, "Q")
+    card.to_s.should eq("QH")
   end
+
 end
 
 
@@ -164,7 +165,7 @@ describe Hand do
 
   it "should take from the top of the deck" do
     club4 = Card.new(:clubs, 4)
-    diamond7 = Card.new(:diamonds, 7) 
+    diamond7 = Card.new(:diamonds, 7)
     clubK = Card.new(:clubs, "K")
 
     deck = mock(:deck, :cards => [club4, diamond7, clubK])
@@ -190,8 +191,8 @@ describe Hand do
       hand.value.should eq(17)
     end
     it "should stop on 21" do
-      deck = mock(:deck, :cards => [Card.new(:clubs, 4), 
-                                    Card.new(:diamonds, 7), 
+      deck = mock(:deck, :cards => [Card.new(:clubs, 4),
+                                    Card.new(:diamonds, 7),
                                     Card.new(:clubs, "K")])
       hand = Hand.new
       2.times { hand.hit!(deck) }
@@ -227,16 +228,16 @@ describe Game do
 
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
-      Game.new.determine_winner(22, 15).should eq(:dealer) 
+      Game.new.determine_winner(22, 15).should eq(:dealer)
     end
     it "should player win if dealer busts" do
-      Game.new.determine_winner(18, 22).should eq(:player) 
+      Game.new.determine_winner(18, 22).should eq(:player)
     end
     it "should have player win if player > dealer" do
-      Game.new.determine_winner(18, 16).should eq(:player) 
+      Game.new.determine_winner(18, 16).should eq(:player)
     end
     it "should have push if tie" do
-      Game.new.determine_winner(16, 16).should eq(:push) 
+      Game.new.determine_winner(16, 16).should eq(:push)
     end
   end
 end
