@@ -57,11 +57,7 @@ class Hand
   end
 
   def to_s
-    if @first_card_down
-      "XX,#{@cards.last}"
-    else
-      @cards.join(',')
-    end
+    @cards.join(',')
   end
 end
 
