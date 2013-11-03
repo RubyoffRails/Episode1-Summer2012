@@ -10,6 +10,7 @@ class Card
   def value
     return 10 if ["J", "Q", "K"].include?(@value)
     return 11 if @value == "A"
+    return 0 if @value == "X"
     return @value
   end
 
@@ -57,7 +58,11 @@ class Hand
   end
 
   def to_s
-    @cards.join(',')
+    cards.join(',')
+  end
+
+  def cards
+    @cards
   end
 end
 
@@ -68,27 +73,19 @@ class DealerHand < Hand
     super
   end
 
+  def cards
+    if @card_down
+      [Card.new("X","X"), @cards.last]
+    else
+      super
+    end
+  end
+
   def play_as_dealer(deck)
     @card_down = false
     if value < 16
       hit!(deck)
       play_as_dealer(deck)
-    end
-  end
-
-  def value
-    if @card_down
-      cards.last.value
-    else
-      super
-    end
-  end
-
-  def to_s
-    if @card_down
-      "XX,#{@cards.last}"
-    else
-      super
     end
   end
 end
