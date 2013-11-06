@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{@suit[0]}"
   end
 
 end
@@ -134,8 +134,8 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:Hearts, "Q")
+    card.to_s.should eq("QH")
   end
 end
 
