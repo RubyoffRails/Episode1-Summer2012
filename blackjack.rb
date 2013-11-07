@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}#{@suit[0]}"
+    "#{@value}#{@suit[0].upcase}"
   end
 
 end
@@ -134,7 +134,7 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:Hearts, "Q")
+    card = Card.new(:hearts, "Q")
     card.to_s.should eq("QH")
   end
 end
