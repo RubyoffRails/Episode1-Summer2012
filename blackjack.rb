@@ -1,4 +1,10 @@
 require 'rspec'
+class Symbol
+  def initial
+    self[0,1].upcase
+  end
+end
+
 class Card
 
   attr_reader :suit, :value
@@ -14,7 +20,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{@suit.initial}"
   end
 
 end
@@ -134,8 +140,8 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:hearts, "Q")
+    card.to_s.should eq("QH")
   end
 end
 
@@ -238,5 +244,11 @@ describe Game do
     it "should have push if tie" do
       Game.new.determine_winner(16, 16).should eq(:push) 
     end
+  end
+end
+
+describe "Symbol" do
+  it "should return an initial" do
+    :hearts.initial.should eq("H") 
   end
 end
