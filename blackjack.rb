@@ -14,7 +14,12 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    suit = "H" if @suit == :hearts
+    suit = "C" if @suit == :clubs
+    suit = "S" if @suit == :spades
+    suit = "D" if @suit == :diamonds
+
+    "#{@value}#{suit}"        
   end
 
 end
@@ -134,8 +139,8 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:hearts, "Q")
+    card.to_s.should eq("QH")
   end
 end
 
