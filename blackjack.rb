@@ -60,6 +60,10 @@ class Hand
     cards.inject(0) {|sum, card| sum += card.value }
   end
 
+  def bust?
+    value > 21
+  end
+
   def play_as_dealer(deck)
     if value < 16
       hit!(deck)
@@ -80,6 +84,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    else
+      status
+    end
   end
 
   def stand
@@ -177,6 +186,17 @@ describe Hand do
     2.times { hand.hit!(deck) }
     hand.cards.should eq([club4, diamond7])
 
+  end
+
+  it "should bust when a player hand value exceeds 21" do
+    deck = mock(:deck, :cards => [Card.new(:clubs, 10),
+                                  Card.new(:diamonds, 10),
+                                  Card.new(:spades, 10)])
+
+    hand = Hand.new
+    3.times { hand.hit!(deck) }
+    hand.bust?.should eq(true)
+    
   end
 
   describe "#play_as_dealer" do
