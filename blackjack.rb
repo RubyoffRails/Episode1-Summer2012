@@ -13,11 +13,23 @@ class Card
     return @value
   end
 
+  def initial(suit)
+    suit.to_s.capitalize[0]
+  end
+
   def to_s
-    suit = "H" if @suit == :hearts
-    suit = "C" if @suit == :clubs
-    suit = "S" if @suit == :spades
-    suit = "D" if @suit == :diamonds
+    suit = case @suit
+    when :hearts
+      initial(:hearts)
+    when :diamonds
+      initial(:diamonds)
+    when :spades
+      initial(:spades)
+    when :clubs
+      initial(:clubs)
+    else
+      raise ArgumentError.new "Unsupported suit: #{@suit}"
+    end
 
     "#{@value}#{suit}"        
   end
@@ -84,7 +96,7 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
-    if @player_hand.value > 21
+    if @player_hand.bust?
       stand
     else
       status
