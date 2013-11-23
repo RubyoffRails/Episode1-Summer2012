@@ -13,8 +13,25 @@ class Card
     return @value
   end
 
+  def initial(suit)
+    suit.to_s.capitalize[0]
+  end
+
   def to_s
-    "#{@value}-#{suit}"
+    suit = case @suit
+    when :hearts
+      initial(:hearts)
+    when :diamonds
+      initial(:diamonds)
+    when :spades
+      initial(:spades)
+    when :clubs
+      initial(:clubs)
+    else
+      raise ArgumentError.new "Unsupported suit: #{@suit}"
+    end
+
+    "#{@value}#{suit}"        
   end
 
 end
@@ -55,6 +72,10 @@ class Hand
     cards.inject(0) {|sum, card| sum += card.value }
   end
 
+  def bust?
+    value > 21
+  end
+
   def play_as_dealer(deck)
     if value < 16
       hit!(deck)
@@ -75,6 +96,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.bust?
+      stand
+    else
+      status
+    end
   end
 
   def stand
@@ -134,8 +160,8 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:hearts, "Q")
+    card.to_s.should eq("QH")
   end
 end
 
@@ -172,6 +198,17 @@ describe Hand do
     2.times { hand.hit!(deck) }
     hand.cards.should eq([club4, diamond7])
 
+  end
+
+  it "should bust when a player hand value exceeds 21" do
+    deck = mock(:deck, :cards => [Card.new(:clubs, 10),
+                                  Card.new(:diamonds, 10),
+                                  Card.new(:spades, 10)])
+
+    hand = Hand.new
+    3.times { hand.hit!(deck) }
+    hand.bust?.should eq(true)
+    
   end
 
   describe "#play_as_dealer" do
