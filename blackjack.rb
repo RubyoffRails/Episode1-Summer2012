@@ -75,6 +75,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if status[:player_value] > 21
+      stand
+    else
+      player_hand.cards
+    end
   end
 
   def stand
@@ -222,6 +227,12 @@ describe Game do
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
+    game.status[:winner].should_not be_nil
+  end
+
+  it "should stand for the player if the player busts" do
+    game = Game.new
+    12.times {game.hit}
     game.status[:winner].should_not be_nil
   end
 
