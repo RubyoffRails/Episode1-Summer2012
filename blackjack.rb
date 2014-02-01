@@ -42,7 +42,7 @@ class Deck
 end
 
 class Hand
-  attr_reader :cards
+  attr_accessor :cards
 
   def initialize
     @cards = []
@@ -51,8 +51,12 @@ class Hand
     @cards << deck.cards.shift
   end
 
+  def placeholder
+    @cards << Card.new("X", "X")
+  end
+
   def value
-    cards.inject(0) {|sum, card| sum += card.value }
+    cards.inject(0) {|sum, card| sum += card.value.to_i }
   end
 
   def play_as_dealer(deck)
@@ -70,7 +74,8 @@ class Game
     @player_hand = Hand.new
     @dealer_hand = Hand.new
     2.times { @player_hand.hit!(@deck) }
-    2.times { @dealer_hand.hit!(@deck) }
+    @dealer_hand.placeholder
+    @dealer_hand.hit!(@deck)
   end
 
   def hit
@@ -83,6 +88,8 @@ class Game
   end
 
   def stand
+    @dealer_hand.cards.shift
+    @dealer_hand.hit!(@deck)
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
@@ -176,7 +183,13 @@ describe Hand do
     hand = Hand.new
     2.times { hand.hit!(deck) }
     hand.cards.should eq([club4, diamond7])
+  end
 
+  it "should have a XX placeholder card for the dealer" do
+    hand = Hand.new
+    hand.placeholder
+    hand.cards.first.suit.should eq("X")
+    hand.cards.first.value.should eq("X")
   end
 
   describe "#play_as_dealer" do
@@ -234,6 +247,11 @@ describe Game do
     game = Game.new
     12.times {game.hit}
     game.status[:winner].should_not be_nil
+  end
+
+  it "should not show the dealer's first card until the player stands" do
+    game = Game.new
+    game.status[:dealer_cards].first.to_s.should eq("XX")
   end
 
   describe "#determine_winner" do
