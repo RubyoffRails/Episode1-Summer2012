@@ -51,10 +51,6 @@ class Hand
     @cards << deck.cards.shift
   end
 
-  def placeholder
-    @cards << Card.new("X", "X")
-  end
-
   def value
     cards.inject(0) {|sum, card| sum += card.value.to_i }
   end
@@ -67,12 +63,18 @@ class Hand
   end
 end
 
+class DealerHand < Hand
+  def placeholder
+    @cards << Card.new("X", "X")
+  end
+end
+
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
-    @dealer_hand = Hand.new
+    @dealer_hand = DealerHand.new
     2.times { @player_hand.hit!(@deck) }
     @dealer_hand.placeholder
     @dealer_hand.hit!(@deck)
@@ -185,13 +187,6 @@ describe Hand do
     hand.cards.should eq([club4, diamond7])
   end
 
-  it "should have a XX placeholder card for the dealer" do
-    hand = Hand.new
-    hand.placeholder
-    hand.cards.first.suit.should eq("X")
-    hand.cards.first.value.should eq("X")
-  end
-
   describe "#play_as_dealer" do
     it "should hit blow 16" do
       deck = double(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
@@ -216,6 +211,16 @@ describe Hand do
       hand.play_as_dealer(deck)
       hand.value.should eq(21)
     end
+  end
+end
+
+describe DealerHand do
+
+  it "should have a XX placeholder card for the dealer" do
+    dealer_hand = DealerHand.new
+    dealer_hand.placeholder
+    dealer_hand.cards.first.suit.should eq("X")
+    dealer_hand.cards.first.value.should eq("X")
   end
 end
 
