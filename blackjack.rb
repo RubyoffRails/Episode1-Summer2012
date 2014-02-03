@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit.to_s[0].upcase}"
   end
 
 end
@@ -42,7 +42,7 @@ class Deck
 end
 
 class Hand
-  attr_reader :cards
+  attr_accessor :cards
 
   def initialize
     @cards = []
@@ -52,7 +52,7 @@ class Hand
   end
 
   def value
-    cards.inject(0) {|sum, card| sum += card.value }
+    cards.inject(0) {|sum, card| sum += card.value.to_i }
   end
 
   def play_as_dealer(deck)
@@ -63,27 +63,41 @@ class Hand
   end
 end
 
+class DealerHand < Hand
+  def placeholder
+    @cards << Card.new("X", "X")
+  end
+end
+
 class Game
   attr_reader :player_hand, :dealer_hand
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
-    @dealer_hand = Hand.new
-    2.times { @player_hand.hit!(@deck) } 
-    2.times { @dealer_hand.hit!(@deck) }
+    @dealer_hand = DealerHand.new
+    2.times { @player_hand.hit!(@deck) }
+    @dealer_hand.placeholder
+    @dealer_hand.hit!(@deck)
   end
 
   def hit
     @player_hand.hit!(@deck)
+    if status[:player_value] > 21
+      stand
+    else
+      player_hand.cards
+    end
   end
 
   def stand
+    @dealer_hand.cards.shift
+    @dealer_hand.hit!(@deck)
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
   def status
-    {:player_cards=> @player_hand.cards, 
+    {:player_cards=> @player_hand.cards,
      :player_value => @player_hand.value,
      :dealer_cards => @dealer_hand.cards,
      :dealer_value => @dealer_hand.value,
@@ -135,7 +149,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
@@ -156,7 +170,7 @@ end
 describe Hand do
 
   it "should calculate the value correctly" do
-    deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 10)])
+    deck = double(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 10)])
     hand = Hand.new
     2.times { hand.hit!(deck) }
     hand.value.should eq(14)
@@ -164,40 +178,49 @@ describe Hand do
 
   it "should take from the top of the deck" do
     club4 = Card.new(:clubs, 4)
-    diamond7 = Card.new(:diamonds, 7) 
+    diamond7 = Card.new(:diamonds, 7)
     clubK = Card.new(:clubs, "K")
 
-    deck = mock(:deck, :cards => [club4, diamond7, clubK])
+    deck = double(:deck, :cards => [club4, diamond7, clubK])
     hand = Hand.new
     2.times { hand.hit!(deck) }
     hand.cards.should eq([club4, diamond7])
-
   end
 
   describe "#play_as_dealer" do
     it "should hit blow 16" do
-      deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
+      deck = double(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
       hand = Hand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(16)
     end
     it "should not hit above" do
-      deck = mock(:deck, :cards => [Card.new(:clubs, 8), Card.new(:diamonds, 9)])
+      deck = double(:deck, :cards => [Card.new(:clubs, 8), Card.new(:diamonds, 9)])
       hand = Hand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(17)
     end
     it "should stop on 21" do
-      deck = mock(:deck, :cards => [Card.new(:clubs, 4), 
-                                    Card.new(:diamonds, 7), 
+      deck = double(:deck, :cards => [Card.new(:clubs, 4),
+                                    Card.new(:diamonds, 7),
                                     Card.new(:clubs, "K")])
       hand = Hand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(21)
     end
+  end
+end
+
+describe DealerHand do
+
+  it "should have a XX placeholder card for the dealer" do
+    dealer_hand = DealerHand.new
+    dealer_hand.placeholder
+    dealer_hand.cards.first.suit.should eq("X")
+    dealer_hand.cards.first.value.should eq("X")
   end
 end
 
@@ -225,18 +248,29 @@ describe Game do
     game.status[:winner].should_not be_nil
   end
 
+  it "should stand for the player if the player busts" do
+    game = Game.new
+    12.times {game.hit}
+    game.status[:winner].should_not be_nil
+  end
+
+  it "should not show the dealer's first card until the player stands" do
+    game = Game.new
+    game.status[:dealer_cards].first.to_s.should eq("XX")
+  end
+
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
-      Game.new.determine_winner(22, 15).should eq(:dealer) 
+      Game.new.determine_winner(22, 15).should eq(:dealer)
     end
     it "should player win if dealer busts" do
-      Game.new.determine_winner(18, 22).should eq(:player) 
+      Game.new.determine_winner(18, 22).should eq(:player)
     end
     it "should have player win if player > dealer" do
-      Game.new.determine_winner(18, 16).should eq(:player) 
+      Game.new.determine_winner(18, 16).should eq(:player)
     end
     it "should have push if tie" do
-      Game.new.determine_winner(16, 16).should eq(:push) 
+      Game.new.determine_winner(16, 16).should eq(:push)
     end
   end
 end
