@@ -14,7 +14,11 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    suit_abbreviation = "C" if @suit == :clubs
+    suit_abbreviation = "D" if @suit == :diamonds
+    suit_abbreviation = "H" if @suit == :hearts
+    suit_abbreviation = "S" if @suit == :spaids
+    "#{suit_abbreviation}#{@value}"
   end
 
 end
@@ -29,7 +33,7 @@ class Deck
 
   def self.build_cards
     cards = []
-    [:clubs, :diamonds, :spades, :hearts].each do |suit|
+    [:clubs, :diamonds, :spaids, :hearts].each do |suit|
       (2..10).each do |number|
         cards << Card.new(suit, number)
       end
@@ -75,6 +79,7 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
   end
 
   def stand
@@ -83,10 +88,17 @@ class Game
   end
 
   def status
+    if @winner.nil?
+      dealer_hand = ["XX", @dealer_hand.cards[1]]
+      dealer_value = "XX"
+    else
+      dealer_hand = @dealer_hand.cards
+      dealer_value = @dealer_hand.value
+    end
     {:player_cards=> @player_hand.cards, 
      :player_value => @player_hand.value,
-     :dealer_cards => @dealer_hand.cards,
-     :dealer_value => @dealer_hand.value,
+     :dealer_cards => dealer_hand,
+     :dealer_value => dealer_value,
      :winner => @winner}
   end
 
@@ -135,7 +147,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -213,12 +225,24 @@ describe Game do
   it "should have a status" do
     Game.new.status.should_not be_nil
   end
+  it "should not display dealers full hand until player stands" do
+    Game.new.status[:dealer_cards][0].should eq("XX")
+  end
+  it "should not display dealers score until player stands" do
+    Game.new.status[:dealer_value].should eq("XX")
+  end
   it "should hit when I tell it to" do
     game = Game.new
     game.hit
     game.player_hand.cards.length.should eq(3)
   end
-
+  it "should stand when player busts" do
+    game = Game.new
+    until game.status[:player_value] > 21
+      game.hit
+    end
+    game.status[:winner].should_not be_nil
+  end
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
