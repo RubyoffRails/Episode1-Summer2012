@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{suit[0].upcase}#{@value}"
   end
 
 end
@@ -47,6 +47,7 @@ class Hand
   def initialize
     @cards = []
   end
+  
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -75,6 +76,11 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      stand
+    else
+      @player_hand
+    end
   end
 
   def stand
@@ -135,7 +141,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -148,6 +154,12 @@ describe Deck do
 
   it "should have 52 cards when new deck" do
     Deck.new.cards.length.should eq(52)
+  end
+
+  # if shuffling is truly random, there is a 1 in 52! chance two
+  # new decks will be identical (8x10^57), hence this test
+  it "should return a shuffled deck" do
+    Deck.new.cards.should_not eq(Deck.new.cards)
   end
 
 end
@@ -224,6 +236,13 @@ describe Game do
     game.stand
     game.status[:winner].should_not be_nil
   end
+
+  it "should stand automatically when the player busts" do
+    game = Game.new
+    game.hit while game.status[:player_value] < 22
+    game.status[:winner].should_not be_nil
+  end
+
 
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
