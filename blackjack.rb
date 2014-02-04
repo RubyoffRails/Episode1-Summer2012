@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{@value}#{suit[0..0].upcase}"
   end
 
 end
@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21 
+      self.stand 
+    end
   end
 
   def stand
@@ -103,7 +106,15 @@ class Game
   end
 
   def inspect
-    status
+    if @winner == nil
+      {:player_cards=> @player_hand.cards, 
+     :player_value => @player_hand.value,
+     :dealer_cards => "XX",
+     :dealer_value => "XX",
+     :winner => @winner}
+    else
+      return status
+    end
   end
 end
 
@@ -135,7 +146,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("AD")
   end
 end
 
@@ -213,10 +224,23 @@ describe Game do
   it "should have a status" do
     Game.new.status.should_not be_nil
   end
+  it "should not show the dealer's hand until the player stands" do
+    re = /(XX)/  
+    g = Game.new
+    re_check = re.match g.status
+    re_check.should_not be_nil
+  end
   it "should hit when I tell it to" do
     game = Game.new
     game.hit
     game.player_hand.cards.length.should eq(3)
+  end
+  it "should stand for player if player busts" do 
+    game = Game.new
+    while game.player_hand.value < 21
+      game.hit
+    end
+    game.status[:winner].should_not be_nil
   end
 
   it "should play the dealer hand when I stand" do
