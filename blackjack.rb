@@ -1,10 +1,11 @@
 require 'rspec'
 class Card
 
-  attr_reader :suit, :value
+  attr_reader :suit, :value, :symbol
   def initialize(suit, value)
     @suit = suit
     @value = value
+    @symbol = value
   end
 
   def value
@@ -14,11 +15,37 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{suit[0,1].upcase}#{@value}"
   end
-
 end
 
+class Holecard < Card
+  attr_reader :flipped
+  alias_method :flipped?, :flipped
+
+  def initialize(suit, value)
+    @flipped = false
+    super
+  end
+  
+  def to_s
+    if @flipped == false
+      "XX"
+    else super
+    end
+  end
+
+  def value
+    if @flipped == false 
+      0
+    else super
+    end
+  end
+ 
+  def flip!
+    @flipped = true
+  end 
+end
 
 class Deck
   attr_reader :cards
@@ -47,6 +74,7 @@ class Hand
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -65,19 +93,28 @@ end
 
 class Game
   attr_reader :player_hand, :dealer_hand
+
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
     @dealer_hand = Hand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
+    set_holecard(@dealer_hand.cards.first.suit, @dealer_hand.cards.first.symbol)
+  end
+
+  def set_holecard(suit, symbol)
+    @holecard = Holecard.new(suit, symbol)
+    @dealer_hand.cards[0] = @holecard
   end
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
   end
 
   def stand
+    @holecard.flip!
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
@@ -135,10 +172,39 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
+describe Holecard do
+
+  it "should display itself as XX" do
+    card = Holecard.new(:club, "A")
+    card.to_s.should eq "XX"
+  end
+
+  it "should return a value of 0" do
+    card = Holecard.new(:club, "A")
+    card.value.should eq 0
+  end
+
+  describe "flip" do
+
+    it "reveals the card" do
+      card = Holecard.new(:club, 8)
+      card.to_s.should eq "XX"
+      card.flip!
+      card.to_s.should eq 'C8'
+    end
+
+    it "reveals the card value" do
+      card = Holecard.new(:club, 8)
+      card.value.should eq 0
+      card.flip!
+      card.value.should eq 8
+    end
+  end
+end
 
 describe Deck do
 
@@ -210,6 +276,11 @@ describe Game do
   it "should have a dealers hand" do
     Game.new.dealer_hand.cards.length.should eq(2)
   end
+
+  it "deals the first dealer card as a hole card" do
+    Game.new.dealer_hand.cards.first.class.should eq Holecard
+  end
+
   it "should have a status" do
     Game.new.status.should_not be_nil
   end
@@ -219,10 +290,23 @@ describe Game do
     game.player_hand.cards.length.should eq(3)
   end
 
+  it "stands when the player busts" do
+    game = Game.new
+    game.should_receive(:stand)
+    game.hit while game.status[:player_value] < 22 
+  end
+
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "reveals the holecard when I stand" do
+    game = Game.new
+    game.dealer_hand.cards.first.flipped?.should eq false 
+    game.stand
+    game.dealer_hand.cards.first.flipped?.should eq true
   end
 
   describe "#determine_winner" do
