@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    return "#{suit[0].upcase}#{@value}"
   end
 
 end
@@ -75,6 +75,8 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    stand if @player_hand.value > 21
+    status
   end
 
   def stand
@@ -134,8 +136,8 @@ describe Card do
   end
 
   it "should be formatted nicely" do
-    card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card = Card.new(:hearts, "5")
+    card.to_s.should eq("H5")
   end
 end
 
@@ -175,7 +177,7 @@ describe Hand do
   end
 
   describe "#play_as_dealer" do
-    it "should hit blow 16" do
+    it "should hit below 16" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
       hand = Hand.new
       2.times { hand.hit!(deck) }
@@ -224,6 +226,18 @@ describe Game do
     game.stand
     game.status[:winner].should_not be_nil
   end
+
+
+  it "should stand for player if hand value is over 21" do
+    game = Game.new
+    deck = mock(:deck, :cards => [Card.new(:clubs, 11), Card.new(:diamonds, 11)])
+    hand = Hand.new
+    2.times { hand.hit!(deck) }
+    hand.value.should eq(22)
+    game.stand
+    game.status[:winner].should_not be_nil
+  end
+
 
   describe "#determine_winner" do
     it "should have dealer win when player busts" do
