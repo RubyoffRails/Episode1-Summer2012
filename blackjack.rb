@@ -14,7 +14,7 @@ class Card
   end
 
   def to_s
-    "#{@value}-#{suit}"
+    "#{suit[0].upcase}#{@value}"
   end
 
 end
@@ -75,6 +75,9 @@ class Game
 
   def hit
     @player_hand.hit!(@deck)
+    if @player_hand.value > 21
+      self.stand
+    end
   end
 
   def stand
@@ -135,7 +138,7 @@ describe Card do
 
   it "should be formatted nicely" do
     card = Card.new(:diamonds, "A")
-    card.to_s.should eq("A-diamonds")
+    card.to_s.should eq("DA")
   end
 end
 
@@ -223,6 +226,14 @@ describe Game do
     game = Game.new
     game.stand
     game.status[:winner].should_not be_nil
+  end
+
+  it "should stand if the player busts" do
+    game = Game.new
+    unless game.status[:player_value] < 21
+      game.hit
+    end
+    game.status[:winner].should_not nil    
   end
 
   describe "#determine_winner" do
