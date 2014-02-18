@@ -198,6 +198,9 @@ describe Hand do
       hand.play_as_dealer(deck)
       hand.value.should eq(21)
     end
+    xit "should stand for a player if he/she busts" do
+
+    end
   end
 end
 
