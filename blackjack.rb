@@ -47,6 +47,7 @@ class Hand
   def initialize
     @cards = []
   end
+
   def hit!(deck)
     @cards << deck.cards.shift
   end
@@ -55,12 +56,6 @@ class Hand
     cards.inject(0) {|sum, card| sum += card.value }
   end
 
-  def play_as_dealer(deck)
-    if value < 16
-      hit!(deck)
-      play_as_dealer(deck)
-    end
-  end
 end
 
 class Game
@@ -68,7 +63,7 @@ class Game
   def initialize
     @deck = Deck.new
     @player_hand = Hand.new
-    @dealer_hand = Hand.new
+    @dealer_hand = DealerHand.new
     2.times { @player_hand.hit!(@deck) } 
     2.times { @dealer_hand.hit!(@deck) }
   end
@@ -76,30 +71,17 @@ class Game
   def hit
     @player_hand.hit!(@deck)
     if @player_hand.value > 21
-      stand
-    else
-      status(:unstood)
+      bust
     end
+  end
 
+  def bust
+    @winner = determine_winner(@player_hand.value, @dealer_hand.value)
   end
 
   def stand
     @dealer_hand.play_as_dealer(@deck)
     @winner = determine_winner(@player_hand.value, @dealer_hand.value)
-    status(:stood)
-  end
-
-  def status (stood)
-    if stood == :stood
-      dlr_cards_to_show = @dealer_hand.cards
-    else
-      dlr_cards_to_show = ['X','X']
-    end
-    {:player_cards=> @player_hand.cards, 
-     :player_value => @player_hand.value,
-     :dealer_cards => dlr_cards_to_show,
-     :dealer_value => @dealer_hand.value,
-     :winner => @winner}
   end
 
   def determine_winner(player_value, dealer_value)
@@ -114,11 +96,32 @@ class Game
     end
   end
 
-  def inspect
-    status (:unstood)
+  def status
+    if @dealer_hand.played
+      @thing = @dealer_hand.cards
+    else
+      @thing = ['X','X']
+    end
+
+    {:player_cards=> @player_hand.cards,
+     :player_value => @player_hand.value,
+     :dealer_cards => @thing,
+     :dealer_value => @dealer_hand.value,
+     :winner => @winner}
   end
 end
 
+class DealerHand < Hand
+  attr_accessor :played
+
+  def play_as_dealer(deck)
+    @played = 1
+    if value < 16
+      hit!(deck)
+      play_as_dealer(deck)
+    end
+  end
+end
 
 describe Card do
 
@@ -167,6 +170,17 @@ end
 
 describe Hand do
 
+  it "player should bust after 21" do
+    game = mock(:game)
+    deck = mock(:deck, :cards => [Card.new(:clubs, 5),
+                                  Card.new(:diamonds, 7),
+                                  Card.new(:clubs, "K"),
+                                  Card.new(:diamonds, 5)])
+    hand = Hand.new
+    4.times { hand.hit!(deck) }
+    game.should_receive(:bust)
+  end
+
   it "should calculate the value correctly" do
     deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 10)])
     hand = Hand.new
@@ -187,16 +201,16 @@ describe Hand do
   end
 
   describe "#play_as_dealer" do
-    it "should hit blow 16" do
+    it "should hit below 16" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), Card.new(:diamonds, 4), Card.new(:clubs, 2), Card.new(:hearts, 6)])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(16)
     end
     it "should not hit above" do
       deck = mock(:deck, :cards => [Card.new(:clubs, 8), Card.new(:diamonds, 9)])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(17)
@@ -205,7 +219,7 @@ describe Hand do
       deck = mock(:deck, :cards => [Card.new(:clubs, 4), 
                                     Card.new(:diamonds, 7), 
                                     Card.new(:clubs, "K")])
-      hand = Hand.new
+      hand = DealerHand.new
       2.times { hand.hit!(deck) }
       hand.play_as_dealer(deck)
       hand.value.should eq(21)
@@ -223,7 +237,7 @@ describe Game do
     Game.new.dealer_hand.cards.length.should eq(2)
   end
   it "should have a status" do
-    Game.new.status(:unstood).should_not be_nil
+    Game.new.status.should_not be_nil
   end
   it "should hit when I tell it to" do
     game = Game.new
@@ -234,14 +248,7 @@ describe Game do
   it "should play the dealer hand when I stand" do
     game = Game.new
     game.stand
-    game.status(:stood)[:winner].should_not be_nil
-  end
-
-  it "should stand for the player when player hand is 21 or more" do
-    game = Game.new
-    let(game.player_hand.value) {21}
-    game.hit
-    game.should_receive(stand)
+    game.status[:winner].should_not be_nil
   end
 
   describe "#determine_winner" do
