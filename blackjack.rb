@@ -74,8 +74,9 @@ class Game
   end
 
   def hit
-    if @player_hand.value > 21
-      stand
+   if @player_hand.value > 21
+     stand
+     puts "You bust! Dealer wins."
     else
       @player_hand.hit!(@deck)
     end
@@ -213,6 +214,8 @@ describe Hand do
         :dealer_hand => dealer_hand )
       2.times { player_hand.hit!(deck) }
       2.times { dealer_hand.hit!(deck) }
+      game.stub(:hit)
+      player_hand.hit!(deck)
     end
   end
 end
